@@ -9,11 +9,7 @@ import requests
 
 
 def get_service_url():
-    service = os.environ.get("SFT_SERVICE")
-    if not service:
-        click.echo("Error: SFT_SERVICE environment variable not set", err=True)
-        click.echo("Example: export SFT_SERVICE=my-server.com:12345", err=True)
-        sys.exit(1)
+    service = os.environ.get("SFT_SERVICE", "sft.pzjj.org:12345")
 
     if not service.startswith("http://") and not service.startswith("https://"):
         service = f"http://{service}"

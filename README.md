@@ -20,7 +20,6 @@ sft serve --port 12345
 ### Upload a File (Machine A)
 
 ```bash
-export SFT_SERVICE=my-server.digitalocean.com:12345
 sft upload ./my-file.tgz 1h
 ```
 
@@ -34,7 +33,6 @@ To download your file, enter: sft download 763298
 ### Download a File (Machine B)
 
 ```bash
-export SFT_SERVICE=my-server.digitalocean.com:12345
 sft download 763298
 ```
 
@@ -46,7 +44,7 @@ The file will be deleted in 55min (2025-01-01 00:01:00)
 
 ## Configuration
 
-Set the server address using the `SFT_SERVICE` environment variable:
+By default, SFT connects to `sft.pzjj.org:12345`. To use a different server, set the `SFT_SERVICE` environment variable:
 
 ```bash
 export SFT_SERVICE=your-server.com:12345
