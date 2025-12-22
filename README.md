@@ -10,25 +10,7 @@ pip install simple-file-transfer
 
 ## Quick Start
 
-### Server Setup (Digital Ocean)
-
-```bash
-doctl compute droplet create sfts-droplet \
-  --region fra1 \
-  --size s-1vcpu-1gb \
-  --image ubuntu-22-04-x64 \
-  --ssh-keys <your-ssh-key-id> \
-  --user-data '#cloud-config
-runcmd:
-  - apt-get update
-  - apt-get install -y python3-pip
-  - pip3 install simple-file-transfer
-  - sfts serve --port 12345 &
-' \
-  --wait
-```
-
-Or run manually:
+### Server Setup
 
 ```bash
 pip install simple-file-transfer
@@ -98,3 +80,5 @@ docker run -p 12345:12345 -v /data/sft:/data sft-server
 - SHA256 checksums for integrity
 - Minimal dependencies
 - Easy deployment
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
