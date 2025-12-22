@@ -73,14 +73,16 @@ class TestCLI:
         assert result.exit_code == 0
         assert 'upload' in result.output or 'download' in result.output
     
-    def test_upload_missing_service(self):
+    def test_upload_connection_failure(self):
+        """Test upload fails gracefully when service is unreachable."""
         runner = CliRunner()
         with runner.isolated_filesystem():
             with open('test.txt', 'w') as f:
                 f.write('test')
             
-            result = runner.invoke(cli, ['upload', 'test.txt', '1h'], env={})
+            result = runner.invoke(cli, ['upload', '--service', 'localhost:99999', 'test.txt', '1h'])
             assert result.exit_code != 0
+            assert 'Error' in result.output
     
     def test_download_missing_service(self):
         runner = CliRunner()
