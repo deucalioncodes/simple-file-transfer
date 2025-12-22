@@ -1,8 +1,9 @@
+import hashlib
 import os
 import sys
-import hashlib
 from datetime import datetime, timedelta
 from pathlib import Path
+
 import click
 import requests
 

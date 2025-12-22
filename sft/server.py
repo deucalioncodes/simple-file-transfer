@@ -1,21 +1,17 @@
-import os
 import hashlib
 import json
+import os
 import tempfile
-import time
 import threading
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from flask import Flask, request, send_file, jsonify
+
+from flask import Flask, jsonify, request, send_file
 
 app = Flask(__name__)
 
-STORAGE_DIR = os.environ.get("SFT_STORAGE_DIR", None)
-if STORAGE_DIR is None:
-    if os.environ.get("PYTEST_CURRENT_TEST"):
-        STORAGE_DIR = tempfile.mkdtemp()
-    else:
-        STORAGE_DIR = "/data/sft"
+STORAGE_DIR = os.environ.get("SFT_STORAGE_DIR", "/data/sft")
 METADATA_FILE = os.path.join(STORAGE_DIR, "metadata.json")
 CLEANUP_INTERVAL = 60
 
