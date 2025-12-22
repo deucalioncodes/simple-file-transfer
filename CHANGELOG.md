@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-12-23
+
+### Added
+- Custom file ID support: `sft upload --id <custom_id> ./file.txt 1h`
+- Server validation to reject duplicate custom file IDs
+
 ## [0.1.0] - 2024-12-22
 
 ### Added
@@ -33,5 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Simple deployment to Digital Ocean
 - Docker containerization
 
-[Unreleased]: https://github.com/yourusername/simple-file-transfer/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/yourusername/simple-file-transfer/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/yourusername/simple-file-transfer/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/yourusername/simple-file-transfer/releases/tag/v0.1.0

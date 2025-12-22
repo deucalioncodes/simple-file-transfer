@@ -86,3 +86,11 @@ class TestCLI:
         runner = CliRunner()
         result = runner.invoke(cli, ['download', '123456'], env={})
         assert result.exit_code != 0
+    
+    def test_upload_with_custom_id_option(self):
+        """Test that --id option is recognized by upload command."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['upload', '--help'])
+        assert result.exit_code == 0
+        assert '--id' in result.output
+        assert 'Custom file ID' in result.output

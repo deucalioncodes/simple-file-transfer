@@ -52,9 +52,14 @@ class FileStorage:
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
 
-    def store_file(self, file_obj, filename, expiry_seconds):
+    def store_file(self, file_obj, filename, expiry_seconds, custom_file_id=None):
         with self.lock:
-            file_id = self._generate_file_id()
+            if custom_file_id:
+                if custom_file_id in self.metadata:
+                    raise ValueError(f"File ID '{custom_file_id}' already exists")
+                file_id = custom_file_id
+            else:
+                file_id = self._generate_file_id()
             file_path = self.storage_dir / file_id
 
             file_obj.save(str(file_path))
@@ -150,9 +155,10 @@ def upload():
         return jsonify({"error": "No file selected"}), 400
 
     expiry_seconds = int(request.form.get("expiry", 3600))
+    custom_file_id = request.form.get("file_id")
 
     try:
-        result = storage.store_file(file, file.filename, expiry_seconds)
+        result = storage.store_file(file, file.filename, expiry_seconds, custom_file_id)
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -83,7 +83,8 @@ def cli():
 @click.argument("filepath", type=click.Path(exists=True))
 @click.argument("duration", default="1h")
 @click.option("--service", help="Override SFT_SERVICE environment variable")
-def upload(filepath, duration, service):
+@click.option("--id", "file_id", help="Custom file ID (default: server-generated)")
+def upload(filepath, duration, service, file_id):
     if service:
         os.environ["SFT_SERVICE"] = service
 
@@ -104,6 +105,8 @@ def upload(filepath, duration, service):
         with open(filepath, "rb") as f:
             files = {"file": (filepath.name, f)}
             data = {"expiry": expiry_seconds}
+            if file_id:
+                data["file_id"] = file_id
 
             response = requests.post(
                 f"{service_url}/upload", files=files, data=data, timeout=300

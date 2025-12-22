@@ -97,3 +97,56 @@ class TestServerEndpoints:
     def test_info_nonexistent(self, client):
         response = client.get('/info/999999')
         assert response.status_code == 404
+
+
+class TestCustomFileId:
+    def test_store_file_with_custom_id(self, file_storage, storage_dir):
+        """Test storing a file with a custom file ID."""
+        from io import BytesIO
+        from werkzeug.datastructures import FileStorage as WerkzeugFileStorage
+        
+        test_content = b"test content for custom id"
+        file_obj = WerkzeugFileStorage(
+            stream=BytesIO(test_content),
+            filename="test.txt"
+        )
+        
+        result = file_storage.store_file(file_obj, "test.txt", 3600, custom_file_id="myid123")
+        
+        assert result["file_id"] == "myid123"
+        assert "myid123" in file_storage.metadata
+        assert (Path(storage_dir) / "myid123").exists()
+    
+    def test_store_file_duplicate_custom_id(self, file_storage, storage_dir):
+        """Test that duplicate custom file IDs are rejected."""
+        from io import BytesIO
+        from werkzeug.datastructures import FileStorage as WerkzeugFileStorage
+        
+        test_content = b"test content"
+        file_obj1 = WerkzeugFileStorage(
+            stream=BytesIO(test_content),
+            filename="test1.txt"
+        )
+        file_obj2 = WerkzeugFileStorage(
+            stream=BytesIO(test_content),
+            filename="test2.txt"
+        )
+        
+        file_storage.store_file(file_obj1, "test1.txt", 3600, custom_file_id="duplicate")
+        
+        with pytest.raises(ValueError, match="already exists"):
+            file_storage.store_file(file_obj2, "test2.txt", 3600, custom_file_id="duplicate")
+    
+    def test_upload_with_custom_id_endpoint(self, client, storage_dir):
+        """Test upload endpoint with custom file ID."""
+        from io import BytesIO
+        
+        data = {
+            'file': (BytesIO(b'test content'), 'test.txt'),
+            'expiry': '3600',
+            'file_id': 'custom456'
+        }
+        response = client.post('/upload', data=data, content_type='multipart/form-data')
+        
+        assert response.status_code == 200
+        assert response.json['file_id'] == 'custom456'
