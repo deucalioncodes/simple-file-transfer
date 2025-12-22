@@ -20,10 +20,10 @@ TESTS_FAILED=0
 print_result() {
     if [ $1 -eq 0 ]; then
         printf "${GREEN}✓ PASSED${NC}: %s\n" "$2"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         printf "${RED}✗ FAILED${NC}: %s\n" "$2"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
