@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -x  # Enable verbose mode to see each command
 
 echo "=========================================="
 echo "Running End-to-End Tests for SFT"
@@ -53,7 +54,8 @@ else
 fi
 
 # Test 2: Upload a small file
-printf "\nTest 2: Upload a small file"
+echo ""
+echo "Test 2: Upload a small file"
 echo "This is a test file for E2E testing" > test-file-1.txt
 UPLOAD_OUTPUT=$(sft upload test-file-1.txt 1h 2>&1)
 if echo "$UPLOAD_OUTPUT" | grep -q "Uploaded test-file-1.txt"; then
@@ -67,13 +69,15 @@ fi
 
 # Test 3: Download the uploaded file
 if [ ! -z "$FILE_ID" ]; then
-    printf "\nTest 3: Download the uploaded file"
+    echo ""
+    echo "Test 3: Download the uploaded file"
     DOWNLOAD_OUTPUT=$(sft download $FILE_ID -o downloaded-1.txt 2>&1)
     if [ -f "downloaded-1.txt" ]; then
         print_result 0 "Download file"
         
         # Test 4: Verify file content
-        printf "\nTest 4: Verify downloaded file content"
+        echo ""
+        echo "Test 4: Verify downloaded file content"
         if diff test-file-1.txt downloaded-1.txt > /dev/null 2>&1; then
             print_result 0 "File content verification"
         else
@@ -83,11 +87,13 @@ if [ ! -z "$FILE_ID" ]; then
         print_result 1 "Download file"
     fi
 else
-    printf "\n${YELLOW}Skipping download tests (no file ID)${NC}"
+    echo ""
+    printf "${YELLOW}Skipping download tests (no file ID)${NC}\n"
 fi
 
 # Test 5: Upload a larger file
-printf "\nTest 5: Upload a larger file (1MB)"
+echo ""
+echo "Test 5: Upload a larger file (1MB)"
 dd if=/dev/urandom of=test-file-2.txt bs=1024 count=1024 2>/dev/null
 UPLOAD_OUTPUT=$(sft upload test-file-2.txt 30m 2>&1)
 if echo "$UPLOAD_OUTPUT" | grep -q "Uploaded test-file-2.txt"; then
@@ -99,7 +105,8 @@ fi
 
 # Test 6: Download large file and verify checksum
 if [ ! -z "$FILE_ID_2" ]; then
-    printf "\nTest 6: Download large file and verify checksum"
+    echo ""
+    echo "Test 6: Download large file and verify checksum"
     DOWNLOAD_OUTPUT=$(sft download $FILE_ID_2 -o downloaded-2.txt 2>&1)
     if [ -f "downloaded-2.txt" ]; then
         ORIGINAL_SHA=$(sha256sum test-file-2.txt | awk '{print $1}')
@@ -118,7 +125,8 @@ if [ ! -z "$FILE_ID_2" ]; then
 fi
 
 # Test 7: Try to download non-existent file
-printf "\nTest 7: Download non-existent file (should fail)"
+echo ""
+echo "Test 7: Download non-existent file (should fail)"
 if sft download 999999 2>&1 | grep -q "Error"; then
     print_result 0 "Non-existent file error handling"
 else
@@ -126,7 +134,8 @@ else
 fi
 
 # Test 8: Upload with different time formats
-printf "\nTest 8: Upload with different time formats"
+echo ""
+echo "Test 8: Upload with different time formats"
 echo "Test file for time format" > test-file-3.txt
 
 # Test 30 minutes
@@ -150,14 +159,14 @@ echo ""
 echo "=========================================="
 echo "Test Summary"
 echo "=========================================="
-printf "Tests Passed: ${GREEN}$TESTS_PASSED${NC}"
-printf "Tests Failed: ${RED}$TESTS_FAILED${NC}"
+printf "Tests Passed: ${GREEN}%s${NC}\n" "$TESTS_PASSED"
+printf "Tests Failed: ${RED}%s${NC}\n" "$TESTS_FAILED"
 echo "=========================================="
 
 if [ $TESTS_FAILED -eq 0 ]; then
-    printf "${GREEN}All tests passed!${NC}"
+    printf "${GREEN}All tests passed!${NC}\n"
     exit 0
 else
-    printf "${RED}Some tests failed!${NC}"
+    printf "${RED}Some tests failed!${NC}\n"
     exit 1
 fi
