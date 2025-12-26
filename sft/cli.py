@@ -1,11 +1,14 @@
 import hashlib
 import os
+import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import click
 import requests
+
+__version__ = "0.1.1"
 
 
 def get_service_url():
@@ -74,7 +77,50 @@ def calculate_sha256(filepath):
     return sha256_hash.hexdigest()
 
 
+def get_git_info():
+    """Get git commit hash and datetime."""
+    try:
+        # Get the directory where this file is located
+        cli_dir = Path(__file__).parent
+        
+        # Get commit hash
+        commit_hash = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=cli_dir,
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        
+        # Get commit datetime in ISO format
+        commit_datetime = subprocess.check_output(
+            ["git", "log", "-1", "--format=%cI"],
+            cwd=cli_dir,
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        
+        return commit_hash, commit_datetime
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None, None
+
+
+def print_version(ctx, param, value):
+    """Print version information and exit."""
+    if not value or ctx.resilient_parsing:
+        return
+    
+    click.echo(f"sft version {__version__}")
+    
+    commit_hash, commit_datetime = get_git_info()
+    if commit_hash:
+        click.echo(f"commit {commit_hash}")
+        click.echo(f"date   {commit_datetime}")
+    
+    ctx.exit()
+
+
 @click.group()
+@click.option('--version', is_flag=True, callback=print_version,
+              expose_value=False, is_eager=True,
+              help='Show version, commit hash, and commit datetime.')
 def cli():
     pass
 
