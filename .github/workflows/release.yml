@@ -92,6 +92,20 @@ jobs:
         python -m pip install --upgrade pip
         pip install build twine
 
+    - name: Generate build info
+      run: |
+        GIT_COMMIT=$(git rev-parse HEAD)
+        GIT_DATE=$(git log -1 --format=%cI)
+        cat > sft/_build_info.py << EOF
+        # This file is auto-generated during the release process
+        # Do not edit manually
+        GIT_COMMIT = "${GIT_COMMIT}"
+        GIT_DATE = "${GIT_DATE}"
+        EOF
+        # Remove leading spaces
+        sed -i 's/^        //' sft/_build_info.py
+        cat sft/_build_info.py
+
     - name: Build package
       run: |
         python -m build
