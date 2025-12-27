@@ -7,6 +7,8 @@ from pathlib import Path
 
 import click
 import requests
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+from tqdm import tqdm
 
 try:
     __version__ = version("simple-file-transfer")
@@ -129,18 +131,40 @@ def upload(filepath, duration, service, file_id):
     filepath = Path(filepath)
     file_size = filepath.stat().st_size
 
-    click.echo(f"Uploading {filepath.name} ({format_size(file_size)})...")
-
     try:
         with open(filepath, "rb") as f:
-            files = {"file": (filepath.name, f)}
-            data = {"expiry": expiry_seconds}
+            fields = {
+                "file": (filepath.name, f, "application/octet-stream"),
+                "expiry": str(expiry_seconds),
+            }
             if file_id:
-                data["file_id"] = file_id
+                fields["file_id"] = file_id
 
-            response = requests.post(
-                f"{service_url}/upload", files=files, data=data, timeout=300
-            )
+            encoder = MultipartEncoder(fields=fields)
+            
+            with tqdm(
+                total=file_size,
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024,
+                desc=f"Uploading {filepath.name}",
+                ncols=80,
+            ) as pbar:
+                last_bytes = [0]
+                
+                def progress_callback(monitor):
+                    delta = monitor.bytes_read - last_bytes[0]
+                    pbar.update(delta)
+                    last_bytes[0] = monitor.bytes_read
+                
+                monitor = MultipartEncoderMonitor(encoder, progress_callback)
+                
+                response = requests.post(
+                    f"{service_url}/upload",
+                    data=monitor,
+                    headers={"Content-Type": monitor.content_type},
+                    timeout=300,
+                )
 
         if response.status_code != 200:
             click.echo(f"Error: Upload failed - {response.text}", err=True)
@@ -186,8 +210,6 @@ def download(file_id, service, output):
         info = info_response.json()
         filename = output or info["filename"]
 
-        click.echo(f"Downloading {info['filename']} ({format_size(info['size'])})...")
-
         response = requests.get(
             f"{service_url}/download/{file_id}", stream=True, timeout=300
         )
@@ -197,8 +219,17 @@ def download(file_id, service, output):
             sys.exit(1)
 
         with open(filename, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+            with tqdm(
+                total=info["size"],
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024,
+                desc=f"Downloading {info['filename']}",
+                ncols=80,
+            ) as pbar:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+                    pbar.update(len(chunk))
 
         downloaded_sha256 = calculate_sha256(filename)
 
